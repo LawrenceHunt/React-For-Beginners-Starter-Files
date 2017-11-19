@@ -1,5 +1,8 @@
 import React from 'react'
 import {formatPrice} from '../helpers'
+import CSSTransitionGroup from 'react-addons-css-transition-group'
+import PropTypes from 'prop-types'
+
 
 export default class Order extends React.Component {
   constructor() {
@@ -11,13 +14,30 @@ export default class Order extends React.Component {
   renderOrder(key) {
     const fish = this.props.fishes[key]
     const count = this.props.order[key]
+    const removeButton = (
+      <button onClick={() => this.props.removeFromOrder(key)}>&times;</button>
+    )
+
     if(!fish || fish.status === 'unavailable') {
-      return <li key={key}>Sorry, {fish ? fish.name : 'fish'} unavailable</li>
+      return <li key={key}>Sorry, {fish ? fish.name : 'fish'} unavailable {removeButton}</li>
     }
     return (
       <li key={key}>
-        <span>{count}lbs {fish.name}</span>
-        <span className="price">{formatPrice(count * fish.price)}</span>
+        <span>
+          <CSSTransitionGroup
+            component="span"
+            className="count"
+            transitionName="count"
+            transitionEnterTimeout={250}
+            transitionLeaveTimeout={250}
+          >
+            <span key={count}>{count}</span>
+          </CSSTransitionGroup>
+
+          lbs {fish.name}
+        </span>
+        <span className="price">{formatPrice(count * fish.price)} {removeButton}</span>
+
       </li>
     )
   }
@@ -33,17 +53,29 @@ export default class Order extends React.Component {
       }
       return formatPrice(prevTotal)
     }, 0)
-    return(
+    return (
       <div className="order-wrap">
         <h2>Your Order</h2>
-        <ul className="order">
+
+        <CSSTransitionGroup
+          className="order"
+          component="ul"
+          transitionName="order"
+          transitionEnterTimeout={500}
+          transitionLeaveTimeout={500}
+        >
           {orderIds.map(this.renderOrder)}
           <li className="total">
             <strong>Total:</strong>
             {formatPrice(total)}
           </li>
-        </ul>
+        </CSSTransitionGroup>
       </div>
     )
+  }
+  static propTypes = {
+    fishes: PropTypes.object.isRequired,
+    order: PropTypes.object.isRequired,
+    removeFromOrder: PropTypes.func.isRequired
   }
 }
